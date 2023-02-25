@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charSet="utf-8">
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" name="viewport" >
+    <title>kanji</title>
+    <link rel="stylesheeet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <style>
+      body, html {
+        color: white;
+        background-color: #112;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+      #num {
+        color: green;
+      }
+      #card {
+        text-align: center;
+        user-select: none;
+        border: 1px solid black;
+        padding: 40px;
+        width: 400px;
+        min-height: 400px;
+        margin: 0 auto;
+      }
+      #term {
+        font-size: 124px;
+      }
+      #mean {
+        font-size: 32px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="card">
+      <div id="num"></div>
+      <div id="term"></div>
+      <div id="mean">click to start</div>
+    </div>
+    <script>
+      function el(id) {
+        return document.getElementById(id)
+      }
+      (async () => {
+        const response = await fetch('./top.json')
+        const items = await response.json()
+        let idx = 0
+        function question() {
+          el('num').innerText = idx + 1
+          el('term').innerText = items[idx].term
+          el('mean').innerText = ''
+        }
+        function answer() {
+          el('mean').innerText = items[idx].meanings.join(', ')
+          idx++
+        }
+        let mode = 0
+        document.body.addEventListener('click', () => {
+          if (mode === 0) {
+            question()
+            mode = 1
+          } else  {
+            answer()
+            mode = 0
+          }
+        })
+      })()
+    </script>
+  </body>
+</html>
