@@ -2,68 +2,91 @@
 <html>
   <head>
     <meta charSet="utf-8">
-    <meta content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" name="viewport" >
     <title>kanji</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" name="viewport" >
     <link rel="stylesheeet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
     <style>
+      html {
+        box-sizing: border-box;
+      }
+      *, *:before, *:after {
+        box-sizing: inherit;
+      }
       body, html {
+        padding: 0;
+        margin: 0;
         color: white;
         background-color: #112;
         font-family: Arial, Helvetica, sans-serif;
       }
-      #num {
-        color: green;
-      }
-      #card {
+      .card {
         text-align: center;
         user-select: none;
-        border: 1px solid black;
+        border: 1px solid white;
         padding: 40px;
         width: 400px;
-        min-height: 400px;
+        max-width: 100%;
+        height: 100vh;
         margin: 0 auto;
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
       }
-      #term {
-        font-size: 124px;
+      .term {
+        font-size: 100px;
       }
-      #mean {
-        font-size: 32px;
+      .nth {
+        font-size: 12px;
+      }
+      .mng {
+        visibility: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .mng.visible {
+        visibility: visible;
       }
     </style>
   </head>
   <body>
-    <div id="card">
-      <div id="num"></div>
-      <div id="term"></div>
-      <div id="mean">click to start</div>
-    </div>
+    <div id="list"></div>
     <script>
+      function go(n) {
+        const $el = el(`mng-${n}`)
+        if (!$el.className.includes('visible')) {
+          $el.className += ' visible'
+        } else {
+          window.location.href = `#${n + 1}`
+        }
+      }
       function el(id) {
         return document.getElementById(id)
       }
       (async () => {
         const response = await fetch('./top.json')
         const items = await response.json()
-        let idx = 0
-        function question() {
-          el('num').innerText = idx + 1
-          el('term').innerText = items[idx].term
-          el('mean').innerText = ''
-        }
-        function answer() {
-          el('mean').innerText = items[idx].meanings.join(', ')
-          idx++
-        }
-        let mode = 0
-        document.body.addEventListener('click', () => {
-          if (mode === 0) {
-            question()
-            mode = 1
-          } else  {
-            answer()
-            mode = 0
-          }
+        const htmls = []
+        items.forEach((item, idx) => {
+          const n = idx + 1
+          htmls.push(`
+            <a class="area" id="${n}" onclick="go(${n})">
+              <div class="card">
+                <div class="nth">${n}</div>
+                <div class="term">${item.term}</div>
+                <div class="mng" id="mng-${n}">
+                  <div>${item.meanings.slice(0, 5).join('</div><div>')}</div>
+                </div>
+              </div>
+            </a>
+          `.trim())
         })
+        el('list').innerHTML = htmls.join('\n')
+        const jump = parseInt(window.location.hash.slice(1))
+        if (jump > 1) {
+          window.location.href = `#${jump}`
+        }
       })()
     </script>
   </body>
