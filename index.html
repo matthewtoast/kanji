@@ -34,7 +34,7 @@
         gap: 20px;
       }
       .term {
-        font-size: 100px;
+        font-size: 64px;
       }
       .nth {
         font-size: 12px;
@@ -53,6 +53,34 @@
   <body>
     <div id="list"></div>
     <script>
+      const query = unserialize(window.location.search.slice(1))
+      console.info(query)
+
+      function unserialize(str) {
+        str = decodeURIComponent(str);
+        var chunks = str.split('&'), obj = {};
+        for(var c = 0; c < chunks.length; c++) {
+          var split = chunks[c].split('=', 2);
+          const key = split[0]
+          const value = split[1];
+          if (key && value) {
+            obj[key] = value
+          }
+        }
+        return obj;
+      }
+
+      function shuffle(array) {
+        let currentIndex = array.length,  randomIndex;
+        while (currentIndex != 0) {
+          randomIndex = Math.floor(Math.random() * currentIndex);
+          currentIndex--;
+          [array[currentIndex], array[randomIndex]] = [
+            array[randomIndex], array[currentIndex]];
+        }
+        return array;
+      }
+
       function go(n) {
         const $el = el(`mng-${n}`)
         if (!$el.className.includes('visible')) {
@@ -61,28 +89,35 @@
           window.location.href = `#${n + 1}`
         }
       }
+
       function el(id) {
         return document.getElementById(id)
       }
+
       (async () => {
-        const response = await fetch('./top.json')
-        const items = await response.json()
+        const response = await fetch(`./${(query.d || 'top').replaceAll(/[^a-zA-Z0-9]/g, '')}.json`)
+        let items = await response.json()
+        if (query.rand) {
+          items = shuffle(items)
+        }
+
         const htmls = []
-        items.forEach((item, idx) => {
+        items.forEach(([term, ...meanings], idx) => {
           const n = idx + 1
           htmls.push(`
             <a class="area" id="${n}" onclick="go(${n})">
               <div class="card">
                 <div class="nth">${n}</div>
-                <div class="term">${item.term}</div>
+                <div class="term">${term}</div>
                 <div class="mng" id="mng-${n}">
-                  <div>${item.meanings.slice(0, 5).join('</div><div>')}</div>
+                  <div>${meanings.join('</div><div>')}</div>
                 </div>
               </div>
             </a>
           `.trim())
         })
         el('list').innerHTML = htmls.join('\n')
+
         const jump = parseInt(window.location.hash.slice(1))
         if (jump > 1) {
           window.location.href = `#${jump}`
